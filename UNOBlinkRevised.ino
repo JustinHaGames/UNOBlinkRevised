@@ -51,11 +51,11 @@ void loop() {
   }
 
   switch (colorChange) {
-    case 0: currentColor = BLUE; colorValue = 1; break;
-    case 1: currentColor = RED; colorValue = 2; break;
-    case 2: currentColor = YELLOW; colorValue = 3; break;
-    case 3: currentColor = GREEN; colorValue = 4; break;
-    case 4: colorValue = 0; break;
+    case 0: currentColor = BLUE; colorValue = 0; break;
+    case 1: currentColor = RED; colorValue = 1; break;
+    case 2: currentColor = YELLOW; colorValue = 2; break;
+    case 3: currentColor = GREEN; colorValue = 3; break;
+    case 4: colorChange = 0; break;
   }
 
   //Face changing code
@@ -85,14 +85,16 @@ void loop() {
     }
   }
 
-  //Set the piece when clicked 
-  if (moved){
-    buttonCount += 1; 
-    if (buttonCount == 1){
-      set = true;
-    } else if (buttonCount >= 2){
-      set = false;
-      buttonCount = 0; 
+  //Set the piece when clicked
+  if (moved) {
+    if (buttonPressed()) {
+      buttonCount += 1;
+      if (buttonCount == 1) {
+        set = true;
+      } else if (buttonCount >= 2) {
+        set = false;
+        buttonCount = 0;
+      }
     }
   }
 
