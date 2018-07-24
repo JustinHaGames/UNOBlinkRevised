@@ -14,12 +14,13 @@ byte colorCount = 0;
 byte receivedColorCount;
 
 bool colorMatch;
+
 //Face changing variables
 Timer faceTimer;
 
 byte faceChange;
 
-byte wFace;
+byte wPixel;
 
 byte whiteValue = 4;
 byte receivedWhiteValue;
@@ -30,6 +31,7 @@ byte whiteCount = 0;
 byte receivedWhiteCount;
 
 bool whiteMatch;
+
 //moved variables
 bool moved;
 
@@ -37,15 +39,9 @@ bool moved;
 bool set;
 byte buttonCount;
 
-bool check;
-
 //debugging
 #include "Serial.h"
 ServicePortSerial Serial;
-
-enum Modes {
-
-};
 
 void setup() {
   Serial.begin();
@@ -85,16 +81,17 @@ void loop() {
   }
 
   switch (faceChange) {
-    case 0: wFace = 0; break;
-    case 1: wFace = 1; break;
-    case 2: wFace = 2; break;
-    case 3: wFace = 3; break;
-    case 4: wFace = 4; break;
-    case 5: wFace = 5; break;
+    case 0: wPixel = 0; break;
+    case 1: wPixel = 1; break;
+    case 2: wPixel = 2; break;
+    case 3: wPixel = 3; break;
+    case 4: wPixel = 4; break;
+    case 5: wPixel = 5; break;
     case 6: faceChange = 0; break;
   }
 
   //Color and face frequencies
+  //The higher a color or face match, the faster the color/face changes
   switch (colorCount) {
     case 1: colorFreq = 23; break;
     case 2: colorFreq = 20; break;
@@ -117,15 +114,19 @@ void loop() {
 
   //Go through the faces and assign the correct colors and white pixel and send the data
   for (int i = 0; i < 6; i++) {
-    if (i != wFace) {
+    if (i != wPixel) {
       setFaceColor(i, currentColor);
+      //set the colorCount and colorValue to 1 value to send
       byte colorData = (colorCount * 10) + colorValue;
+      //if you press the button, send the color data
       if (set) {
         setValueSentOnFace(colorData, i);
       }
-    } else if (i == wFace) {
+    } else if (i == wPixel) {
       setFaceColor(i, WHITE);
+      //set the whiteCount and whiteValue to 1 value to send
       byte faceData = (whiteCount * 10) + whiteValue;
+      //if you press the button, send the white pixel data
       if (set) {
         setValueSentOnFace(faceData, i);
       }
@@ -135,18 +136,23 @@ void loop() {
   //Go through sent data and see if it was a match
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {
-      if (f != wFace) {
+      //if not white pixel
+      if (f != wPixel) {
+        //get the last data sent on colored faces
         byte receivedColorData = getLastValueReceivedOnFace(f);
+        //Get the colorValue sent 
         receivedColorValue = receivedColorData % 10;
+        //See if colorValue sent is a match to current colorValue
         if (receivedColorValue == colorValue) {
           Serial.println(colorCount);
           colorMatch = true;
+          //if the colors match, then compare Colorcounts and adjust to faster speed
           receivedColorCount = (receivedColorData - receivedColorValue) / 10;
           if (receivedColorCount > colorCount) {
             colorCount = receivedColorCount;
           }
         }
-      } else if (f == wFace) {
+      } else if (f == wPixel) {
         byte receivedWhiteData = getLastValueReceivedOnFace(f);
         receivedWhiteValue = receivedWhiteData % 10;
         if (receivedWhiteValue == whiteValue) {
@@ -181,6 +187,7 @@ void loop() {
     }
   }
 
+  //Reset the game pieces
   if (buttonMultiClicked()) {
     if (buttonClickCount() == 3) {
       set = false; 
